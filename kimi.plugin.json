@@ -1,0 +1,11 @@
+{
+  "name": "analyze-function-complexity",
+  "version": "1.0.0",
+  "description": "Scientific function complexity analysis with independent parallel validation agents",
+  "author": "Luiz Fischer",
+  "license": "MIT",
+  "interface": {
+    "displayName": "Analyze Function Complexity",
+    "shortDescription": "Validate complexity and refactoring claims"
+  }
+}

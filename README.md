@@ -16,56 +16,82 @@ Created and maintained by **Luiz Fischer**.
 - Evaluates function-level SOLID concerns only when the surrounding contracts make them meaningful.
 - Designs controlled refactoring experiments with behavioral oracles, paired workloads, randomized execution order, bootstrap intervals, effect sizes, guardrails, and sensitivity checks.
 - Compares multiple refactoring candidates without hiding regressions or inconclusive evidence.
+- Coordinates independent formal, empirical, and structural/refactoring validators while preserving disagreements and serializing resource-sensitive measurements.
+- Uses model-neutral agent profiles that can run with Claude, Kimi, DeepSeek-backed hosts, or any compatible orchestrator.
 
 ## Repository layout
 
 ```text
 .
+├── .claude-plugin/
+│   └── plugin.json
 ├── .gitignore
 ├── LICENSE
 ├── README.md
 ├── SKILL.md
+├── agents/
+│   ├── afc-empirical-performance-validator.md
+│   ├── afc-formal-complexity-validator.md
+│   └── afc-structural-refactoring-validator.md
+├── kimi.plugin.json
 ├── references/
 │   ├── algorithmic-complexity.md
+│   ├── multi-agent-validation.md
 │   ├── performance-measurement.md
 │   ├── refactoring-experiments.md
 │   ├── scientific-validation.md
-│   └── structural-and-solid.md
+│   ├── structural-and-solid.md
+│   └── validator-handoff.schema.json
 └── scripts/
     ├── analyze_scaling.py
     └── compare_refactorings.py
 ```
 
-The repository root is the installable skill directory. The Agent Skills specification permits additional files, so the GitHub README and ignore rules can live beside `SKILL.md` while the repository remains a self-contained package.
+The repository root is the installable skill directory. It is also packaged for Claude Code and Kimi Code. The Markdown files under `agents/` are actual model-neutral validator profiles; they are separate from client-specific UI metadata.
 
 ## Standard and requirements
 
-This package follows the open [Agent Skills specification](https://agentskills.io/specification): the skill directory name matches the YAML `name`, `SKILL.md` contains the required `name` and `description`, and optional material is organized under `references/` and `scripts/`.
+This package follows the open [Agent Skills specification](https://agentskills.io/specification): the skill directory name matches the YAML `name`, `SKILL.md` contains the required `name` and `description`, and supporting material is organized under `references/`, `scripts/`, and `agents/`.
 
 Requirements:
 
-- An Agent Skills-compatible client.
+- An Agent Skills-compatible client, or another host that can inject `SKILL.md` as instructions.
 - Python 3.10 or newer to run the optional analysis scripts.
 - No third-party Python packages; both scripts use only the standard library.
 
-The skill instructions can still be used without running the scripts. Client support and skill-loading behavior vary, so restart or reload the client after a manual installation when necessary.
+The helper scripts and subagents are optional. Without subagent support, the skill executes the same validation lanes sequentially and reports the fallback. Client discovery behavior varies, so reload or restart the client after creating a new skill or agent directory.
+
+## Multi-agent validation
+
+The main agent remains the coordinator and sole final-report author. It selects at most three validation lanes:
+
+| Profile | Primary responsibility | Default execution |
+|---|---|---|
+| `afc-formal-complexity-validator` | Cost models, bounds, recurrences, witnesses, and counterexamples | Parallel and read-only |
+| `afc-empirical-performance-validator` | Profiling, scaling, benchmark design, uncertainty, and validity threats | Planned in parallel; measurements serialized or isolated |
+| `afc-structural-refactoring-validator` | CFG metrics, maintainability, SOLID applicability, behavioral oracles, and refactoring guardrails | Parallel and read-only |
+
+The coordinator freezes a common task packet before delegation, withholds sibling conclusions, and synthesizes by claim ID and evidence quality rather than majority vote. Agent agreement is corroboration, not proof or statistical replication.
+
+Validators use [`references/validator-handoff.schema.json`](references/validator-handoff.schema.json) when the host supports structured output, giving Claude-, Kimi-, and DeepSeek-backed workers the same evidence contract.
+
+Profiles do not declare a model. A host may route them to Claude, Kimi, DeepSeek, or another model. For repeated heterogeneous evaluations, rotate model-role assignments so model family is not confounded with validator role. The complete protocol is in [`references/multi-agent-validation.md`](references/multi-agent-validation.md).
 
 ## Installation
-
-Replace `OWNER/REPOSITORY` and `REPOSITORY` below with the GitHub repository coordinates and local clone directory you choose when publishing.
 
 ### Portable installation with the skills CLI
 
 Install only this skill:
 
 ```bash
-npx skills@latest add OWNER/REPOSITORY --skill analyze-function-complexity
+npx skills@latest add luiz-fischer/analyze-function-complexity \
+  --skill analyze-function-complexity
 ```
 
 Install it non-interactively for Codex:
 
 ```bash
-npx skills@latest add OWNER/REPOSITORY \
+npx skills@latest add luiz-fischer/analyze-function-complexity \
   --skill analyze-function-complexity \
   --agent codex \
   --yes
@@ -73,14 +99,74 @@ npx skills@latest add OWNER/REPOSITORY \
 
 The Agent Skills standard defines the package format, not a mandatory installer. The `skills` CLI is a convenient cross-client installer used by public skill repositories.
 
+### Claude Code with native subagents
+
+Clone the repository and load it as a plugin for the current session:
+
+```bash
+git clone https://github.com/luiz-fischer/analyze-function-complexity.git
+claude --plugin-dir ./analyze-function-complexity
+```
+
+Claude Code discovers the root skill and the profiles under `agents/`. For a manual user-level installation:
+
+```bash
+cd analyze-function-complexity
+mkdir -p ~/.claude/skills/analyze-function-complexity ~/.claude/agents
+cp -R SKILL.md references scripts agents \
+  ~/.claude/skills/analyze-function-complexity/
+cp agents/*.md ~/.claude/agents/
+```
+
+The profiles use the portable subset of the Claude Code and Kimi Code agent-file formats. See the official [Claude Code subagent documentation](https://code.claude.com/docs/en/sub-agents).
+
+### Kimi Code with native subagents
+
+Install the skill as a Kimi plugin from the public repository:
+
+```text
+/plugins install https://github.com/luiz-fischer/analyze-function-complexity
+```
+
+The skill can dynamically delegate to Kimi's built-in workers. To make the three named profiles available globally, clone the repository and copy them into Kimi's shared agent directory:
+
+```bash
+git clone https://github.com/luiz-fischer/analyze-function-complexity.git
+mkdir -p ~/.agents/agents
+cp analyze-function-complexity/agents/*.md ~/.agents/agents/
+```
+
+Alternatively, install both the skill and profiles manually in the shared cross-tool locations:
+
+```bash
+mkdir -p ~/.agents/skills/analyze-function-complexity ~/.agents/agents
+cp -R analyze-function-complexity/SKILL.md \
+  analyze-function-complexity/references \
+  analyze-function-complexity/scripts \
+  analyze-function-complexity/agents \
+  ~/.agents/skills/analyze-function-complexity/
+cp analyze-function-complexity/agents/*.md ~/.agents/agents/
+```
+
+Reload Kimi after installation. See the official [Kimi Code agents and subagents documentation](https://www.kimi.com/code/docs/en/kimi-code-cli/customization/agents.html).
+
+### DeepSeek-backed multi-agent execution
+
+DeepSeek provides models and compatible APIs; the agent host supplies skill discovery, worker isolation, and parallel orchestration. Configure DeepSeek in a supported coding-agent host, then install this skill and its profiles using that host's instructions. DeepSeek's official guide documents integration with Claude Code and other agent tools: [Integrate with AI Tools](https://api-docs.deepseek.com/guides/coding_agents/).
+
+When using the raw API, the external orchestrator must create the coordinator and validator calls, freeze the same task packet for each lane, and serialize shared-hardware measurements. The skill does not transmit source code or call any provider on its own.
+
 ### Manual installation for Codex
 
 On Linux or macOS:
 
 ```bash
-git clone https://github.com/OWNER/REPOSITORY.git
+git clone https://github.com/luiz-fischer/analyze-function-complexity.git
 mkdir -p ~/.codex/skills/analyze-function-complexity
-cp -R REPOSITORY/SKILL.md REPOSITORY/references REPOSITORY/scripts \
+cp -R analyze-function-complexity/SKILL.md \
+  analyze-function-complexity/references \
+  analyze-function-complexity/scripts \
+  analyze-function-complexity/agents \
   ~/.codex/skills/analyze-function-complexity/
 ```
 
@@ -97,10 +183,15 @@ python3 ~/.codex/skills/analyze-function-complexity/scripts/compare_refactorings
 For clients that discover the shared `.agents/skills/` location:
 
 ```bash
-git clone https://github.com/OWNER/REPOSITORY.git
+git clone https://github.com/luiz-fischer/analyze-function-complexity.git
 mkdir -p YOUR_PROJECT/.agents/skills/analyze-function-complexity
-cp -R REPOSITORY/SKILL.md REPOSITORY/references REPOSITORY/scripts \
+cp -R analyze-function-complexity/SKILL.md \
+  analyze-function-complexity/references \
+  analyze-function-complexity/scripts \
+  analyze-function-complexity/agents \
   YOUR_PROJECT/.agents/skills/analyze-function-complexity/
+mkdir -p YOUR_PROJECT/.agents/agents
+cp analyze-function-complexity/agents/*.md YOUR_PROJECT/.agents/agents/
 ```
 
 Commit the copied skill if the project should provide it to every contributor.
@@ -110,7 +201,7 @@ Commit the copied skill if the project should provide it to every contributor.
 Create an archive containing the installable skill directory:
 
 ```bash
-git clone https://github.com/OWNER/REPOSITORY.git analyze-function-complexity
+git clone https://github.com/luiz-fischer/analyze-function-complexity.git
 zip -r analyze-function-complexity.zip analyze-function-complexity \
   -x 'analyze-function-complexity/.git/*'
 ```
@@ -135,6 +226,10 @@ Refactor this high-complexity function without changing behavior. Predeclare the
 
 ```text
 Compare these refactoring candidates using paired observations and report uncertainty, regressions, and inconclusive results.
+```
+
+```text
+Use independent formal, empirical, and structural validators. Run safe read-only work in parallel, serialize benchmarks, preserve disagreements, and then synthesize one evidence matrix.
 ```
 
 The main workflow and output contract are documented in [`SKILL.md`](SKILL.md). Detailed scientific and engineering protocols are loaded from the files in [`references/`](references/) only when needed.
@@ -179,6 +274,9 @@ skills-ref validate .
 python3 ./scripts/analyze_scaling.py --self-test
 python3 ./scripts/compare_refactorings.py --self-test
 python3 -m py_compile ./scripts/*.py
+python3 -m json.tool ./.claude-plugin/plugin.json >/dev/null
+python3 -m json.tool ./kimi.plugin.json >/dev/null
+python3 -m json.tool ./references/validator-handoff.schema.json >/dev/null
 ```
 
 `skills-ref` is the reference validator linked by the Agent Skills specification. The two self-tests exercise the deterministic checks bundled with this skill.
@@ -188,29 +286,22 @@ Before accepting a change, also review whether:
 - The YAML name still matches the parent directory.
 - The description still states both capability and trigger conditions.
 - Every path referenced by `SKILL.md` exists and remains relative to the skill root.
+- Agent profiles remain model-neutral, read-only by default, and compatible with their documented discovery paths.
+- Resource-sensitive measurements remain serialized or physically isolated.
 - Claims labeled as proofs, measurements, inferences, or heuristics remain clearly separated.
 - New executable code documents dependencies, handles invalid input, and has a reproducible test.
 
-## Publishing on GitHub
+## Releasing
 
-Before the first public release:
+Before publishing a release:
 
-1. Replace all `OWNER/REPOSITORY` placeholders in this README.
-2. Run every command in the validation section.
-3. Review bundled scripts and references for secrets, private paths, proprietary data, and unsafe commands.
-4. Create the repository and push the prepared directory:
+1. Run every command in the validation section.
+2. Test one sequential analysis and one multi-agent analysis on a held-out function.
+3. Review scripts, profiles, references, and manifests for secrets, private paths, proprietary data, and unsafe commands.
+4. Confirm that Claude and Kimi discover the skill and named profiles after a clean installation.
+5. Push the reviewed commit and create a semantic version tag such as `v1.0.0`.
 
-```bash
-cd /path/to/analyze-function-complexity
-git init
-git add .
-git commit -m "Publish analyze-function-complexity Agent Skill"
-git branch -M main
-git remote add origin https://github.com/OWNER/REPOSITORY.git
-git push -u origin main
-```
-
-Use semantic version tags such as `v1.0.0` once the public API and behavior are stable. Keep release notes explicit about changes to triggers, scientific protocols, report fields, and script input formats.
+Keep release notes explicit about changes to triggers, agent roles, scientific protocols, report fields, and script input formats.
 
 ## Security
 

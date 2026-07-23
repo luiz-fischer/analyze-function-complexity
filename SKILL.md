@@ -1,6 +1,6 @@
 ---
 name: analyze-function-complexity
-description: Analyze, scientifically validate, optimize, or refactor a function or method across formal algorithmic time/space complexity, structural complexity, measured runtime performance, and SOLID applicability; also evaluate this skill's own workflow complexity when explicitly requested. Use when asked about Big O/Theta/Omega, best/worst/expected/amortized cost, scaling or bottlenecks, benchmarking/profiling, cyclomatic/NPath/cognitive complexity, maintainability, counterexamples, reproducibility, uncertainty, complexity reduction, behavior-preserving refactoring, or whether function-level code follows SOLID. Separates proofs, contracts, measurements, inferences, and heuristics; requires explicit assumptions, falsifiers, guardrails, and limits.
+description: Analyze, independently validate, optimize, or refactor a function or method across formal algorithmic time/space complexity, structural complexity, measured runtime performance, and SOLID applicability; also evaluate this skill's own workflow complexity when explicitly requested. Use for single-agent or multi-agent analysis involving Big O/Theta/Omega, best/worst/expected/amortized cost, scaling or bottlenecks, benchmarking/profiling, cyclomatic/NPath/cognitive complexity, maintainability, counterexamples, reproducibility, uncertainty, parallel validation, complexity reduction, behavior-preserving refactoring, or function-level SOLID review. Separates proofs, contracts, measurements, inferences, and heuristics; requires explicit assumptions, falsifiers, guardrails, and limits.
 ---
 
 # Analyze Function Complexity
@@ -15,6 +15,7 @@ Produce an evidence-aware analysis of a function, method, closure, or small call
 4. **SOLID**: contextual design principles, evaluated only where the surrounding contracts make them applicable.
 5. **Experimental refactoring**: an explicitly requested, behavior-preserving intervention evaluated against predeclared goals and guardrails.
 6. **Skill quality**: trigger, routing, context-cost, and workflow complexity evaluated only when this skill itself is the requested subject.
+7. **Multi-agent validation**: independent evidence lanes coordinated without treating model agreement as proof or allowing concurrent measurements to contaminate one another.
 
 Never present one dimension as proof of another. A low cyclomatic score does not imply speed; a fast benchmark does not establish asymptotic complexity; SOLID is not a numeric quality scale.
 
@@ -27,6 +28,7 @@ Answer in the user's language. Analyze only unless the user also asks to optimiz
 - Read [references/structural-and-solid.md](references/structural-and-solid.md) when reviewing code metrics, maintainability, test-path complexity, or SOLID.
 - Read [references/scientific-validation.md](references/scientific-validation.md) when a conclusion is high-impact, disputed, surprising, dependent on uncertain assumptions, or when evaluating the skill itself. Apply the compact claim-validation protocol below to every material conclusion.
 - Read [references/refactoring-experiments.md](references/refactoring-experiments.md) completely when the user asks to optimize, simplify, decompose, or refactor code. Do not load it for analysis-only requests.
+- Read [references/multi-agent-validation.md](references/multi-agent-validation.md) completely when the user requests multiple agents or parallel validation, or when the activation criteria below require independent validators.
 
 ## Evidence Vocabulary
 
@@ -48,6 +50,29 @@ Use confidence (`high`, `medium`, `low`) separately from evidence type. For ever
 - `low`: the claim is tentative, proxy-based, or depends on substantial missing context.
 
 These labels are ordinal review judgments unless calibrated against a held-out corpus. Do not translate them into probabilities without empirical calibration.
+
+## Multi-Agent Execution
+
+Keep the main agent responsible for scope, preregistration, scheduling, conflict resolution, authorization boundaries, and the final report. Use a flat fan-out/fan-in topology: validators do not delegate or communicate with one another. Use one execution mode:
+
+- **Sequential**: use for low-risk, narrow questions that have one defensible evidence route and do not request independent validation.
+- **Multi-agent**: use when the user requests it, a refactoring spans at least two evidence dimensions, a material claim is high-impact/disputed/surprising, or independent formal and empirical checks are both feasible.
+
+Before delegation, freeze an immutable task packet containing the target source or path and revision, relevant contracts, size variables, cost model, workloads, material claim IDs, assumptions to challenge, allowed commands, and authorization limits. Do not include the coordinator's expected answer or another validator's conclusions.
+
+Ensure every claim that triggered multi-agent validation receives two sealed evidence routes; one validator may cover several claim IDs. Add a third lane only when it addresses a distinct evidence dimension or after disagreement as an explicitly labeled adjudicator. Choose from the bundled model-neutral profiles:
+
+- [afc-formal-complexity-validator](agents/afc-formal-complexity-validator.md): proof obligations, bounds, cost models, recurrences, witnesses, and counterexamples;
+- [afc-empirical-performance-validator](agents/afc-empirical-performance-validator.md): profiling, benchmark design, scaling evidence, uncertainty, and measurement threats;
+- [afc-structural-refactoring-validator](agents/afc-structural-refactoring-validator.md): CFG and maintainability signals, SOLID applicability, behavioral oracles, and refactoring guardrails.
+
+Use named profiles when the host discovers them. Otherwise spawn generic isolated workers with the corresponding profile body and frozen task packet. If the host cannot delegate, execute the same lanes sequentially with separate evidence notes and disclose the fallback.
+
+Run source inspection, formal derivation, counterexample search, and oracle design in parallel when they are read-only and independent. Never run timing benchmarks, profilers, load tests, or other resource-sensitive measurements concurrently in the same physical contention domain. Use one controlled measurement queue per host unless CPUs, memory, storage, networks, caches, thermal/power behavior, and background load are demonstrably isolated; containers or core pinning alone do not establish this. Use separate worktrees or sequential execution for commands that can mutate source, generated files, build caches, databases, or fixtures. Validators must not edit the target; the coordinator is the sole writer unless the user explicitly authorizes isolated candidate branches.
+
+Do not hard-code a role to Claude, Kimi, DeepSeek, or any other model family. When heterogeneous models are available, rotate or randomize role assignment across replicated evaluations so model and role are not confounded. Record the host and model identifiers when known. Agreement among models is corroboration only, not statistical independence, formal proof, or experimental replication.
+
+Require every validator to return a self-contained handoff containing scope, claim IDs, findings, primary evidence labels, verification performed, assumptions, falsifiers or limits, confidence, commands/tools, shared dependencies, whether peer outputs were seen, an independence classification (`independent-check`, `robustness-check`, `repeatability-only`, or `adjudication`), and unresolved disagreements. Use [references/validator-handoff.schema.json](references/validator-handoff.schema.json) when the host supports structured output; otherwise return its Markdown equivalent. The coordinator must retain every first-round handoff, compare evidence paths, preserve dissent, rerun invalid lanes when possible, and resolve claims by evidence quality rather than majority vote.
 
 ## Workflow
 
@@ -149,6 +174,8 @@ For each material conclusion:
 
 A failed falsification attempt increases confidence only within the attempted domain; it does not prove the claim. Repeated answers from the same model are not independent replication. If verification is unavailable, say so and retain `inferred` or `unknown` where appropriate.
 
+When multi-agent execution is active, apply the synthesis and failure rules in `references/multi-agent-validation.md`. Do not expose one validator's conclusion to another before their initial handoffs are frozen.
+
 ### 7. Decide Whether Refactoring Is Justified
 
 Do not treat a high metric, long function, or generic threshold as authorization or sufficient evidence to refactor. When the user requests a change:
@@ -182,6 +209,8 @@ python3 scripts/compare_refactorings.py --self-test
 ```
 
 Search-based refactoring may generate candidates, but never let the search see held-out validation cases or bypass transformation preconditions. Treat its output as exploratory until independently validated.
+
+Keep validation agents read-only. The coordinator may implement the selected intervention only after behavioral guardrails and ownership boundaries are explicit; use isolated candidate worktrees when more than one implementation is intentionally explored.
 
 ### 9. Prioritize Findings Without Conflation
 
@@ -217,6 +246,9 @@ Formal derivation, structural contributors, and measured results kept distinct.
 
 ## Validation performed
 Counterexamples, metamorphic checks, sensitivity analysis, independent checks, disagreements, and unavailable validation.
+
+## Multi-agent validation (when used)
+Execution mode, frozen task packet, validator lanes, host/model identifiers when known, isolation, handoff status, disagreements, invalidated lanes, serialized measurements, and sequential fallback.
 
 ## Refactoring experiment (when requested)
 Goal-Question-Metric plan, baseline, hypothesis, dependency/slice evidence, semantic oracle, candidates, guardrails, paired effects, Pareto frontier, and retained trade-off.

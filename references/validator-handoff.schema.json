@@ -1,0 +1,233 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/luiz-fischer/analyze-function-complexity/references/validator-handoff.schema.json",
+  "title": "Analyze Function Complexity Validator Handoff",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "target",
+    "protocol_ref",
+    "validator",
+    "claims",
+    "checks",
+    "assumptions_and_threats",
+    "disagreements_and_unknowns"
+  ],
+  "properties": {
+    "schema": {
+      "const": "afc-validator-handoff/v1"
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["revision", "symbol"],
+      "properties": {
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "symbol": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "protocol_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "validator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "role",
+        "independence",
+        "peer_outputs_seen",
+        "shared_dependencies"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "host": {
+          "type": ["string", "null"]
+        },
+        "model": {
+          "type": ["string", "null"]
+        },
+        "independence": {
+          "enum": [
+            "independent-check",
+            "robustness-check",
+            "repeatability-only",
+            "adjudication"
+          ]
+        },
+        "peer_outputs_seen": {
+          "type": "boolean"
+        },
+        "shared_dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "claim_id",
+          "finding",
+          "evidence_type",
+          "verdict",
+          "verification",
+          "confidence",
+          "falsifier_or_limit"
+        ],
+        "properties": {
+          "claim_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "finding": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_type": {
+            "enum": [
+              "formal",
+              "contract",
+              "measured",
+              "heuristic",
+              "inferred",
+              "unknown"
+            ]
+          },
+          "verdict": {
+            "enum": [
+              "supports",
+              "falsifies",
+              "conditional",
+              "inconclusive"
+            ]
+          },
+          "verification": {
+            "type": "string",
+            "minLength": 1
+          },
+          "confidence": {
+            "enum": ["high", "medium", "low"]
+          },
+          "falsifier_or_limit": {
+            "type": ["string", "null"]
+          }
+        }
+      }
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary", "commands", "tools", "evidence_refs"],
+      "properties": {
+        "summary": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "assumptions_and_threats": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "measurement": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "raw_data_ref",
+            "experimental_unit",
+            "host_block",
+            "order_seed",
+            "concurrent_load",
+            "exclusions"
+          ],
+          "properties": {
+            "raw_data_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "experimental_unit": {
+              "type": "string",
+              "minLength": 1
+            },
+            "host_block": {
+              "type": "string",
+              "minLength": 1
+            },
+            "order_seed": {
+              "type": ["string", "integer"]
+            },
+            "concurrent_load": {
+              "type": "string"
+            },
+            "exclusions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "default": null
+    },
+    "disagreements_and_unknowns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

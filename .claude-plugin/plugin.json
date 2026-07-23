@@ -1,0 +1,9 @@
+{
+  "name": "analyze-function-complexity",
+  "version": "1.0.0",
+  "description": "Scientific function complexity analysis with independent parallel validation agents",
+  "author": {
+    "name": "Luiz Fischer"
+  },
+  "license": "MIT"
+}

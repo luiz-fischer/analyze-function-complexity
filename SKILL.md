@@ -1,6 +1,6 @@
 ---
 name: analyze-function-complexity
-description: Analyze, independently validate, optimize, or refactor a function or method across formal algorithmic time/space complexity, structural complexity, measured runtime performance, and SOLID applicability; also evaluate this skill's own workflow complexity when explicitly requested. Use for single-agent or multi-agent analysis involving Big O/Theta/Omega, best/worst/expected/amortized cost, scaling or bottlenecks, benchmarking/profiling, cyclomatic/NPath/cognitive complexity, maintainability, counterexamples, reproducibility, uncertainty, parallel validation, complexity reduction, behavior-preserving refactoring, or function-level SOLID review. Separates proofs, contracts, measurements, inferences, and heuristics; requires explicit assumptions, falsifiers, guardrails, and limits.
+description: Analyze, independently validate, optimize, or refactor a function or method across formal algorithmic time/space complexity, structural complexity, measured runtime performance, and SOLID applicability; also evaluate this skill's own workflow complexity when explicitly requested. Use for single-agent or multi-agent analysis involving Big O/Theta/Omega, best/worst/expected/amortized cost, scaling or bottlenecks, benchmarking/profiling, cyclomatic/NPath/cognitive complexity, maintainability, counterexamples, reproducibility, uncertainty, parallel validation, critical council deliberation, complexity reduction, behavior-preserving refactoring, or function-level SOLID review. Separates proofs, contracts, measurements, inferences, and heuristics; requires explicit assumptions, falsifiers, guardrails, and limits.
 ---
 
 # Analyze Function Complexity
@@ -16,6 +16,7 @@ Produce an evidence-aware analysis of a function, method, closure, or small call
 5. **Experimental refactoring**: an explicitly requested, behavior-preserving intervention evaluated against predeclared goals and guardrails.
 6. **Skill quality**: trigger, routing, context-cost, and workflow complexity evaluated only when this skill itself is the requested subject.
 7. **Multi-agent validation**: independent evidence lanes coordinated without treating model agreement as proof or allowing concurrent measurements to contaminate one another.
+8. **Critical council deliberation**: blinded, evidence-first review of consequential decisions that remain contested or multi-objective after technical validation.
 
 Never present one dimension as proof of another. A low cyclomatic score does not imply speed; a fast benchmark does not establish asymptotic complexity; SOLID is not a numeric quality scale.
 
@@ -29,6 +30,7 @@ Answer in the user's language. Analyze only unless the user also asks to optimiz
 - Read [references/scientific-validation.md](references/scientific-validation.md) when a conclusion is high-impact, disputed, surprising, dependent on uncertain assumptions, or when evaluating the skill itself. Apply the compact claim-validation protocol below to every material conclusion.
 - Read [references/refactoring-experiments.md](references/refactoring-experiments.md) completely when the user asks to optimize, simplify, decompose, or refactor code. Do not load it for analysis-only requests.
 - Read [references/multi-agent-validation.md](references/multi-agent-validation.md) completely when the user requests multiple agents or parallel validation, or when the activation criteria below require independent validators.
+- Read [references/critical-council.md](references/critical-council.md) completely when the user explicitly requests a council, panel, jury, or blind review, or when a consequential decision remains materially contested after ordinary validation. The council is bundled; never require an external `council` skill.
 
 ## Evidence Vocabulary
 
@@ -73,6 +75,14 @@ Run source inspection, formal derivation, counterexample search, and oracle desi
 Do not hard-code a role to Claude, Kimi, DeepSeek, or any other model family. When heterogeneous models are available, rotate or randomize role assignment across replicated evaluations so model and role are not confounded. Record the host and model identifiers when known. Agreement among models is corroboration only, not statistical independence, formal proof, or experimental replication.
 
 Require every validator to return a self-contained handoff containing scope, claim IDs, findings, primary evidence labels, verification performed, assumptions, falsifiers or limits, confidence, commands/tools, shared dependencies, whether peer outputs were seen, an independence classification (`independent-check`, `robustness-check`, `repeatability-only`, or `adjudication`), and unresolved disagreements. Use [references/validator-handoff.schema.json](references/validator-handoff.schema.json) when the host supports structured output; otherwise return its Markdown equivalent. The coordinator must retain every first-round handoff, compare evidence paths, preserve dissent, rerun invalid lanes when possible, and resolve claims by evidence quality rather than majority vote.
+
+### Critical council escalation
+
+Technical validators establish claim-level evidence. Use the bundled council only for a decision-level escalation: when the user explicitly requests it, or when a consequential behavior, contract, reliability, or material-cost decision remains unresolved because valid evidence lanes disagree, multiple candidates remain Pareto-eligible, or assumptions and trade-offs can change the preferred action, and the frozen evidence can be reviewed without new technical experiments. Do not convene it to replace missing evidence, settle a proof by vote, or react only to a high metric.
+
+Complete and freeze ordinary validator handoffs before forming the council. Standard mode uses three independent [council members](agents/afc-critical-council-member.md), two fresh blind [reviewers](agents/afc-critical-council-reviewer.md), and the coordinator as chair. A disclosed lightweight mode may use two members and one reviewer. Pseudonymize opinions and validate rankings with [scripts/critical_council.py](scripts/critical_council.py) when auditability matters. Rank only complete member opinions answering the same decision, never complementary technical handoffs. Rankings are advisory; proofs, contracts, behavioral guardrails, and valid measurements control the synthesis.
+
+The council profiles, protocol, and utility are local to this skill and model-neutral. If the host cannot create at least two isolated member opinions, use the ordinary evidence-first coordinator synthesis, state that no council formed, and continue without blocking the analysis. Council members and reviewers remain read-only and may review recorded measurements, but resource-sensitive measurements stay in the coordinator's serialized queue.
 
 ## Workflow
 
@@ -176,6 +186,8 @@ A failed falsification attempt increases confidence only within the attempted do
 
 When multi-agent execution is active, apply the synthesis and failure rules in `references/multi-agent-validation.md`. Do not expose one validator's conclusion to another before their initial handoffs are frozen.
 
+After technical handoffs are frozen, test the activation gate in `references/critical-council.md` before selecting a consequential refactoring or resolving a material disagreement. If activated, complete the blind council before implementation. Do not describe sequential self-review or fewer than two valid independent opinions as a council.
+
 ### 7. Decide Whether Refactoring Is Justified
 
 Do not treat a high metric, long function, or generic threshold as authorization or sufficient evidence to refactor. When the user requests a change:
@@ -249,6 +261,9 @@ Counterexamples, metamorphic checks, sensitivity analysis, independent checks, d
 
 ## Multi-agent validation (when used)
 Execution mode, frozen task packet, validator lanes, host/model identifiers when known, isolation, handoff status, disagreements, invalidated lanes, serialized measurements, and sequential fallback.
+
+## Critical council (when used)
+Activation reason, standard or lightweight quorum, blinding status, valid/rejected ballots, advisory ranking, decisive evidence, preserved dissent, and any no-council fallback.
 
 ## Refactoring experiment (when requested)
 Goal-Question-Metric plan, baseline, hypothesis, dependency/slice evidence, semantic oracle, candidates, guardrails, paired effects, Pareto frontier, and retained trade-off.

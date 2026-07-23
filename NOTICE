@@ -1,0 +1,14 @@
+Analyze Function Complexity
+Copyright (c) 2026 Luiz Fischer
+
+This project is distributed under the MIT License in LICENSE.
+
+The bundled critical-council protocol is an independent, domain-specific adaptation
+of the three-stage deliberation pattern documented by karpathy/llm-council:
+parallel first opinions, pseudonymized peer ranking, and chair synthesis.
+
+Reference design:
+https://github.com/karpathy/llm-council/commit/92e1fccb1bdcf1bab7221aa9ed90f9dc72529131
+
+No source code from that upstream repository is included. The conceptual attribution
+is retained because the reviewed revision had no detected license.

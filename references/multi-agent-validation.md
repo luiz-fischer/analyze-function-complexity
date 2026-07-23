@@ -11,9 +11,10 @@
 7. [Heterogeneous model use](#heterogeneous-model-use)
 8. [Handoff contract](#handoff-contract)
 9. [Synthesis and disagreement](#synthesis-and-disagreement)
-10. [Refactoring ownership](#refactoring-ownership)
-11. [Failure and fallback](#failure-and-fallback)
-12. [Host adapters](#host-adapters)
+10. [Critical council escalation](#critical-council-escalation)
+11. [Refactoring ownership](#refactoring-ownership)
+12. [Failure and fallback](#failure-and-fallback)
+13. [Host adapters](#host-adapters)
 
 ## Purpose
 
@@ -170,6 +171,14 @@ The coordinator must:
 
 Never average complexity classes, confidence labels, metric values produced under different conventions, or incompatible benchmark environments. Never decide truth by majority vote. An unresolved material disagreement prevents `high` confidence.
 
+## Critical council escalation
+
+Technical validators and a critical council serve different purposes. Validators create and challenge claim-level evidence through formal, contractual, measured, structural, or falsification routes. The council is a second-stage, decision-level deliberation that consumes frozen validator handoffs; it must not rerun the same lanes as opinion polling or create a `consensus` evidence label. Rank only complete council opinions that answer the same frozen decision, never the complementary formal, empirical, and structural handoffs themselves.
+
+Read [critical-council.md](critical-council.md) completely when the user explicitly requests a council, panel, jury, or blind review. Without an explicit request, escalate only when a consequential decision remains unresolved after valid ordinary checks because evidence lanes materially disagree, multiple options remain Pareto-eligible, or assumptions and trade-offs can change the preferred action, and the frozen evidence can be reviewed without new technical experiments. Missing proofs, contracts, behavioral oracles, or representative measurements require more evidence or an `unknown` result, not a vote.
+
+Standard mode adds three read-only independent members, two fresh blind reviewers, and the coordinator as chair after first-round technical handoffs are frozen. Use the bundled member and reviewer profiles and `../scripts/critical_council.py`; no external council skill is a dependency. If the host cannot produce at least two isolated opinions, continue with ordinary coordinator synthesis and explicitly state that no council formed. The blind aggregate is advisory, and decisive technical evidence or a credible unresolved safety objection overrides ranking.
+
 ## Refactoring ownership
 
 Keep validators read-only by default. The coordinator is the sole writer and applies at most one interpretable causal change before revalidation.
@@ -188,11 +197,13 @@ If a validator times out, fails, lacks a required tool, or violates isolation:
 
 The absence of subagent support never blocks the skill. Execute the same role checklists sequentially and maintain separate handoff records.
 
+For a requested critical council, lack of isolated member capacity triggers the no-council fallback in [critical-council.md](critical-council.md). Sequential technical role checks remain useful, but do not relabel one coordinator's repeated perspectives as independent council opinions.
+
 ## Host adapters
 
-- **Claude Code**: use native custom subagents or agent teams. The bundled Markdown profiles can be installed in `.claude/agents/` or loaded as plugin agents.
-- **Kimi Code CLI**: use native `Agent` or `AgentSwarm`. Install the same profiles in `.agents/agents/`, `.kimi-code/agents/`, or the user-level equivalents.
+- **Claude Code**: use native custom subagents or agent teams. The bundled validator and council Markdown profiles can be installed in `.claude/agents/` or loaded as plugin agents.
+- **Kimi Code CLI**: use native `Agent` or `AgentSwarm`. Install the same validator and council profiles in `.agents/agents/`, `.kimi-code/agents/`, or the user-level equivalents.
 - **DeepSeek models**: run through an agent host that provides task isolation and delegation, or implement the coordinator/worker calls in an external orchestrator. The raw model API does not install this repository or create workers by itself.
-- **Other hosts**: map the three roles to isolated workers. If concurrency, named profiles, or model routing is unavailable, use the sequential fallback without changing the evidence contract.
+- **Other hosts**: map the three technical roles to isolated workers and, when the critical gate opens, map the bundled member and reviewer profiles as a separate stage. If concurrency, named profiles, or model routing is unavailable, use the documented fallback without changing the evidence contract.
 
 Keep host-specific configuration outside scientific conclusions. The analysis protocol, task packet, handoff schema, and measurement controls remain identical across hosts.

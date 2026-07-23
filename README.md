@@ -330,6 +330,11 @@ python3 -m json.tool ./references/validator-handoff.schema.json >/dev/null
 
 `skills-ref` is the reference validator linked by the Agent Skills specification. The three self-tests exercise the deterministic checks bundled with this skill.
 
+The repository also runs the validation suite automatically on every push and pull
+request through the CI workflow at .github/workflows/ci.yml. It validates required
+files and manifests, scans for machine-specific paths, and runs the complete Python
+test matrix on supported Python versions.
+
 Before accepting a change, also review whether:
 
 - The YAML name still matches the parent directory.

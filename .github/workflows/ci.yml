@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  metadata:
+    name: Validate skill metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Validate required files, metadata, and manifests
+        run: |
+          test -f LICENSE
+          test -f NOTICE
+          test -f README.md
+          test -f SKILL.md
+          test -f .claude-plugin/plugin.json
+          test -f kimi.plugin.json
+          test -f references/critical-council.md
+          test -f references/multi-agent-validation.md
+          test -f references/validator-handoff.schema.json
+          test -f scripts/analyze_scaling.py
+          test -f scripts/compare_refactorings.py
+          test -x scripts/critical_council.py
+          python -I -B -c 'from pathlib import Path; import json; root=Path("."); required=["afc-critical-council-member.md","afc-critical-council-reviewer.md","afc-formal-complexity-validator.md","afc-empirical-performance-validator.md","afc-structural-refactoring-validator.md"]; missing=[name for name in required if not (root/"agents"/name).is_file()]; raise SystemExit("Missing agent profiles: "+str(missing)) if missing else None; text=(root/"SKILL.md").read_text(encoding="utf-8"); frontmatter=text.split("---",2)[1] if text.startswith("---") else ""; assert "name: analyze-function-complexity" in frontmatter; assert "description:" in frontmatter and len(frontmatter.split("description:",1)[1].splitlines()[0].strip()) >= 20; manifests=[json.loads((root/path).read_text(encoding="utf-8")) for path in [".claude-plugin/plugin.json","kimi.plugin.json"]]; assert all(item["name"]=="analyze-function-complexity" for item in manifests); assert manifests[0]["version"]==manifests[1]["version"]'
+          python -I -B -m json.tool .claude-plugin/plugin.json >/dev/null
+          python -I -B -m json.tool kimi.plugin.json >/dev/null
+          python -I -B -m json.tool references/validator-handoff.schema.json >/dev/null
+          if grep -R -n --exclude-dir=.git --exclude=ci.yml -E '/home/user01|~/.codex/skills/council' .; then
+            echo "Machine-specific paths found."
+            exit 1
+          fi
+
+  tests:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run deterministic self-tests
+        run: |
+          python -I -B scripts/analyze_scaling.py --self-test
+          python -I -B scripts/compare_refactorings.py --self-test
+          python -I -B scripts/critical_council.py self-test
+
+      - name: Compile bundled Python scripts
+        run: python -I -B -m py_compile scripts/*.py
+
+      - name: Parse JSON manifests and schema
+        run: |
+          python -I -B -m json.tool .claude-plugin/plugin.json >/dev/null
+          python -I -B -m json.tool kimi.plugin.json >/dev/null
+          python -I -B -m json.tool references/validator-handoff.schema.json >/dev/null

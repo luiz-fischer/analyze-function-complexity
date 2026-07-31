@@ -12,6 +12,7 @@ Created and maintained by **Luiz Fischer**.
 - Distinguishes worst-case, best-case, expected, amortized, and output-sensitive bounds.
 - Uses loop sums, recurrence relations, aggregate analysis, accounting, potentials, and counterexamples where applicable.
 - Treats cyclomatic, NPath, cognitive, and maintainability metrics as review signals rather than universal laws.
+- Applies an explicit acceptance gate for target-driven Cognitive Complexity refactoring, including baseline/final measurements, helper-displacement checks, compilation, and verified zero-failure test evidence.
 - Separates profiling and benchmarking evidence from mathematical complexity claims.
 - Evaluates function-level SOLID concerns only when the surrounding contracts make them meaningful.
 - Designs controlled refactoring experiments with behavioral oracles, paired workloads, randomized execution order, bootstrap intervals, effect sizes, guardrails, and sensitivity checks.
@@ -40,6 +41,7 @@ Created and maintained by **Luiz Fischer**.
 ├── kimi.plugin.json
 ├── references/
 │   ├── algorithmic-complexity.md
+│   ├── cognitive-complexity-refactoring.md
 │   ├── critical-council.md
 │   ├── multi-agent-validation.md
 │   ├── performance-measurement.md

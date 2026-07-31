@@ -29,6 +29,7 @@ Answer in the user's language. Analyze only unless the user also asks to optimiz
 - Read [references/structural-and-solid.md](references/structural-and-solid.md) when reviewing code metrics, maintainability, test-path complexity, or SOLID.
 - Read [references/scientific-validation.md](references/scientific-validation.md) when a conclusion is high-impact, disputed, surprising, dependent on uncertain assumptions, or when evaluating the skill itself. Apply the compact claim-validation protocol below to every material conclusion.
 - Read [references/refactoring-experiments.md](references/refactoring-experiments.md) completely when the user asks to optimize, simplify, decompose, or refactor code. Do not load it for analysis-only requests.
+- Also read [references/cognitive-complexity-refactoring.md](references/cognitive-complexity-refactoring.md) completely when the user asks to reduce Cognitive Complexity to a target threshold or explicitly requests helper extraction for that purpose.
 - Read [references/multi-agent-validation.md](references/multi-agent-validation.md) completely when the user requests multiple agents or parallel validation, or when the activation criteria below require independent validators.
 - Read [references/critical-council.md](references/critical-council.md) completely when the user explicitly requests a council, panel, jury, or blind review, or when a consequential decision remains materially contested after ordinary validation. The council is bundled; never require an external `council` skill.
 
@@ -224,6 +225,8 @@ Search-based refactoring may generate candidates, but never let the search see h
 
 Keep validation agents read-only. The coordinator may implement the selected intervention only after behavioral guardrails and ownership boundaries are explicit; use isolated candidate worktrees when more than one implementation is intentionally explored.
 
+For a requested Cognitive Complexity threshold, apply the acceptance gate in `references/cognitive-complexity-refactoring.md`. Measure baseline and candidate with the same analyzer, version, language plugin, and configuration; verify compilation and zero failing tests from actual runner evidence; and inspect new helpers plus the nearby call path so extraction does not merely displace complexity. Treat an unavailable or ambiguous required result as `unknown`, not as a pass.
+
 ### 9. Prioritize Findings Without Conflation
 
 Rank recommendations by observed or demonstrated impact:
@@ -267,6 +270,9 @@ Activation reason, standard or lightweight quorum, blinding status, valid/reject
 
 ## Refactoring experiment (when requested)
 Goal-Question-Metric plan, baseline, hypothesis, dependency/slice evidence, semantic oracle, candidates, guardrails, paired effects, Pareto frontier, and retained trade-off.
+
+## Cognitive-complexity acceptance (when a target is requested)
+Target method and threshold, analyzer/version/configuration, baseline and final contributions, helper/call-path displacement check, compilation command and exit status, test commands and actual zero-failure evidence, unmet gates, and final `accepted`, `rejected`, or `unknown` verdict.
 
 ## SOLID applicability
 | Principle | Status | Scope and evidence | Impact/trade-off |

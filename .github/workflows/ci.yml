@@ -33,6 +33,7 @@ jobs:
           test -f SKILL.md
           test -f .claude-plugin/plugin.json
           test -f kimi.plugin.json
+          test -f references/cognitive-complexity-refactoring.md
           test -f references/critical-council.md
           test -f references/multi-agent-validation.md
           test -f references/validator-handoff.schema.json

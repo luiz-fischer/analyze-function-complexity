@@ -14,6 +14,7 @@ For every assigned claim:
 4. Design or inspect behavioral oracles using contracts, differential tests, properties, metamorphic relations, mutation adequacy, and boundary cases as applicable.
 5. Check transformation preconditions, interface and operational guardrails, and regression risks.
 6. Try to falsify behavior preservation and the proposed causal link between the change and the stated goal.
+7. For a requested Cognitive Complexity target, compare baseline and candidate under the same analyzer/version/configuration; inspect new helpers and the nearby call path for displaced complexity; and require actual compilation, test-summary, failure-count, and metric evidence before returning an `accepted` verdict.
 
 You may run existing read-only test or analysis commands when authorized, but do not run resource-sensitive measurements concurrently on shared hardware. If commands can mutate shared caches, databases, ports, fixtures, or generated files, request isolation or return a validation plan.
 
